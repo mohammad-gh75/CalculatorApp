@@ -3,16 +3,17 @@ package org.maktab36.calculatorapp.controller;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.graphics.Color;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import org.maktab36.calculatorapp.R;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class CalculatorActivity extends AppCompatActivity {
     private static final String BUNDLE_KEY_TEXT_SHOW = "textViewShow";
@@ -46,8 +47,9 @@ public class CalculatorActivity extends AppCompatActivity {
         loadState(savedInstanceState);
         setListeners();
     }
-    private void loadState(Bundle savedInstanceState){
-        if(savedInstanceState!=null){
+
+    private void loadState(Bundle savedInstanceState) {
+        if (savedInstanceState != null) {
             mTextViewShow.setText(savedInstanceState.getCharSequence(BUNDLE_KEY_TEXT_SHOW));
         }
     }
@@ -55,7 +57,7 @@ public class CalculatorActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putCharSequence(BUNDLE_KEY_TEXT_SHOW,mTextViewShow.getText());
+        outState.putCharSequence(BUNDLE_KEY_TEXT_SHOW, mTextViewShow.getText());
     }
 
     private void findAllViews() {
@@ -302,28 +304,71 @@ public class CalculatorActivity extends AppCompatActivity {
     }
 
     private double calculate(String input) {
-        String[] numbers = input.split("[-+÷×]");
-        if (numbers.length == 1) {
-            return Double.parseDouble(numbers[0]);
+        List<String> temp1 = Arrays.asList(input.split("[-+÷×]"));
+        List<String> temp2 = Arrays.asList(input.split("(\\d+)"));
+        ArrayList<String> numbers = new ArrayList<>(temp1);
+        ArrayList<String> operators = new ArrayList<>(temp2);
+        operators.remove(0);
+        while (numbers.size() > 1) {
+            if (operators.contains("×")) {
+                int mul = operators.indexOf("×");
+                if(mul!=0&&operators.get(mul-1).equals("÷")){
+                    calculation(numbers,operators,"÷",mul-1);
+                    mul--;
+                }
+                calculation(numbers,operators,"×",mul);
+                continue;
+            }
+            if (operators.contains("÷")) {
+                int div=operators.indexOf("÷");
+                if(div!=0&&operators.get(div-1).equals("×")){
+                    calculation(numbers,operators,"×",div-1);
+                    div--;
+                }
+                calculation(numbers,operators,"÷",div);
+                continue;
+            }
+            if(operators.contains("+")){
+                int add = operators.indexOf("+");
+                if(add!=0&&operators.get(add-1).equals("-")){
+                    calculation(numbers,operators,"-",add-1);
+                    add--;
+                }
+                calculation(numbers,operators,"+",add);
+                continue;
+            }
+            if (operators.contains("-")) {
+                int sub = operators.indexOf("-");
+                if(sub!=0&&operators.get(sub-1).equals("+")){
+                    calculation(numbers,operators,"+",sub-1);
+                    sub--;
+                }
+                calculation(numbers,operators,"-",sub);
+            }
         }
-        char operator = input.charAt(numbers[0].length());
-        double num1 = Double.parseDouble(numbers[0]);
-        double num2 = Double.parseDouble(numbers[1]);
-        double result = 0;
+        return Double.parseDouble(numbers.get(0));
+    }
+
+    private void calculation(ArrayList<String> numbers, ArrayList<String> operators, String operator,int index) {
+        double num1 = Double.parseDouble(numbers.get(index));
+        double num2 = Double.parseDouble(numbers.get(index + 1));
+        double temp = 0;
         switch (operator) {
-            case '+':
-                result = num1 + num2;
+            case "×":
+                temp = num1 * num2;
                 break;
-            case '-':
-                result = num1 - num2;
+            case "÷":
+                temp = num1 / num2;
                 break;
-            case '÷':
-                result = num1 / num2;
+            case "+":
+                temp = num1 + num2;
                 break;
-            case '×':
-                result = num1 * num2;
+            case "-":
+                temp = num1 - num2;
                 break;
         }
-        return result;
+        numbers.set(index, String.valueOf(temp));
+        numbers.remove(index + 1);
+        operators.remove(index);
     }
 }
