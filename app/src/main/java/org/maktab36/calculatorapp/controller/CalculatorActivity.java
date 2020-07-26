@@ -110,8 +110,10 @@ public class CalculatorActivity extends AppCompatActivity {
                 Toast.makeText(CalculatorActivity.this, R.string.button_delete,
                         Toast.LENGTH_SHORT).show();
                 StringBuilder temp = new StringBuilder(mTextViewShow.getText());
-                temp.deleteCharAt(temp.length() - 1);
-                mTextViewShow.setText(temp);
+                if(temp.length()>=1) {
+                    temp.deleteCharAt(temp.length() - 1);
+                    mTextViewShow.setText(temp);
+                }
             }
         });
 
@@ -308,7 +310,13 @@ public class CalculatorActivity extends AppCompatActivity {
         List<String> temp2 = Arrays.asList(input.split("(\\d+)"));
         ArrayList<String> numbers = new ArrayList<>(temp1);
         ArrayList<String> operators = new ArrayList<>(temp2);
-        operators.remove(0);
+        for (int i = 0; i <operators.size() ; i++) {
+            String ch=operators.get(i);
+            if(!(ch.equals("×")||ch.equals("÷")||ch.equals("+")||ch.equals("-"))){
+                operators.remove(i);
+                i--;
+            }
+        }
         while (numbers.size() > 1) {
             if (operators.contains("×")) {
                 int mul = operators.indexOf("×");
